@@ -30,18 +30,25 @@ func On() {
 			// 尝试对这个手机号的接受短信爬取内容
 			c2.OnHTML("div[class='container']", func(element *colly.HTMLElement) {
 				element.ForEach("div", func(i int, element *colly.HTMLElement) {
+
+					// [视觉中国]Your Visual China Group verification code is:713169
 					text := element.ChildText("div[class='col-xs-12 col-md-8']")
+
 					if strings.Index(text, "500px") != -1 || strings.Index(text, "[视觉中国]") != -1 {
+
+						// 提取验证码
 						compileRegex := regexp.MustCompile("\\d{6,}")
 						matchArr := compileRegex.FindStringSubmatch(text)
 						if len(matchArr) < 0 {
 							fmt.Println("500px没有匹配到code")
 							return
 						}
+
 						register.PX500Channel <- &register.Px500{
 							Tel:  tel,
 							Code: matchArr[len(matchArr)-1],
 						}
+
 						fmt.Println("=======================")
 						fmt.Println("====获取到了============")
 						fmt.Println("=======================")
