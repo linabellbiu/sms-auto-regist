@@ -1,9 +1,12 @@
 package www_yunjiema_top
 
 import (
+	"auto-reg/register"
 	"fmt"
 	"github.com/gocolly/colly"
 	"github.com/gocolly/colly/queue"
+	"regexp"
+	"strings"
 )
 
 func On() {
@@ -21,9 +24,28 @@ func On() {
 	c.OnHTML("div[class='number-boxes']", func(e *colly.HTMLElement) {
 		e.ForEach("div[class='number-boxes-item d-flex flex-column ']", func(i int, element *colly.HTMLElement) {
 			c2 := c.Clone()
+
+			tel := element.ChildText("h4")
+
+			// 尝试对这个手机号的接受短信爬取内容
 			c2.OnHTML("div[class='container']", func(element *colly.HTMLElement) {
 				element.ForEach("div", func(i int, element *colly.HTMLElement) {
-					fmt.Println(element.ChildText("div[class='col-xs-12 col-md-8']"))
+					text := element.ChildText("div[class='col-xs-12 col-md-8']")
+					if strings.Index(text, "500px") != -1 || strings.Index(text, "[视觉中国]") != -1 {
+						compileRegex := regexp.MustCompile("\\d{6,}")
+						matchArr := compileRegex.FindStringSubmatch(text)
+						if len(matchArr) < 0 {
+							fmt.Println("500px没有匹配到code")
+							return
+						}
+						register.PX500Channel <- &register.Px500{
+							Tel:  tel,
+							Code: matchArr[len(matchArr)-1],
+						}
+						fmt.Println("=======================")
+						fmt.Println("====获取到了============")
+						fmt.Println("=======================")
+					}
 				})
 			})
 
@@ -31,7 +53,8 @@ func On() {
 				fmt.Println("爬取页面2：", "https://www.yunjiema.top"+r.URL.Path)
 			})
 
-			err := c2.Visit("https://www.yunjiema.top" + element.ChildAttr("a[href]", "href"))
+			// 获取列表的手机号
+			err := c2.Visit(fmt.Sprintf("%s.html", "https://www.yunjiema.top/zh/message/"+strings.ReplaceAll(tel, "+", "")))
 			if err != nil {
 				fmt.Println(err)
 				return
@@ -46,30 +69,30 @@ func On() {
 	if err := q.AddURL("https://www.yunjiema.top/zh/phone/1.html"); err != nil {
 		return
 	}
-	//if err := q.AddURL("https://www.yunjiema.top/zh/phone/2.html"); err != nil {
-	//	return
-	//}
-	//if err := q.AddURL("https://www.yunjiema.top/zh/phone/3.html"); err != nil {
-	//	return
-	//}
-	//if err := q.AddURL("https://www.yunjiema.top/zh/phone/4.html"); err != nil {
-	//	return
-	//}
-	//if err := q.AddURL("https://www.yunjiema.top/zh/phone/5.html"); err != nil {
-	//	return
-	//}
-	//if err := q.AddURL("https://www.yunjiema.top/zh/phone/6.html"); err != nil {
-	//	return
-	//}
-	//if err := q.AddURL("https://www.yunjiema.top/zh/phone/7.html"); err != nil {
-	//	return
-	//}
-	//if err := q.AddURL("https://www.yunjiema.top/zh/phone/8.html"); err != nil {
-	//	return
-	//}
-	//if err := q.AddURL("https://www.yunjiema.top/zh/phone/9.html"); err != nil {
-	//	return
-	//}
+	if err := q.AddURL("https://www.yunjiema.top/zh/phone/2.html"); err != nil {
+		return
+	}
+	if err := q.AddURL("https://www.yunjiema.top/zh/phone/3.html"); err != nil {
+		return
+	}
+	if err := q.AddURL("https://www.yunjiema.top/zh/phone/4.html"); err != nil {
+		return
+	}
+	if err := q.AddURL("https://www.yunjiema.top/zh/phone/5.html"); err != nil {
+		return
+	}
+	if err := q.AddURL("https://www.yunjiema.top/zh/phone/6.html"); err != nil {
+		return
+	}
+	if err := q.AddURL("https://www.yunjiema.top/zh/phone/7.html"); err != nil {
+		return
+	}
+	if err := q.AddURL("https://www.yunjiema.top/zh/phone/8.html"); err != nil {
+		return
+	}
+	if err := q.AddURL("https://www.yunjiema.top/zh/phone/9.html"); err != nil {
+		return
+	}
 
 	if err := q.Run(c); err != nil {
 		return
