@@ -1,13 +1,13 @@
 package main
 
 import (
-	"auto-reg/register"
-	"auto-reg/www_yunjiema_top"
+	"github.com/wangxudong123/sms-auto-regist/register"
+	"github.com/wangxudong123/sms-auto-regist/www_yunjiema_top"
 )
 
 func main() {
-
-	go register.Register()
-
+	// 需要丢到任务队列里面
 	www_yunjiema_top.On()
+
+	register.Run(&register.Px500{})
 }
