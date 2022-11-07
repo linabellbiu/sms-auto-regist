@@ -1,10 +1,10 @@
 package www_yunjiema_top
 
 import (
-	"auto-reg/register"
 	"fmt"
 	"github.com/gocolly/colly"
 	"github.com/gocolly/colly/queue"
+	"github.com/wangxudong123/sms-auto-regist/register"
 	"regexp"
 	"strings"
 )

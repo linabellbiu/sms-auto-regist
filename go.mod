@@ -1,8 +1,11 @@
-module auto-reg
+module github.com/wangxudong123/sms-auto-regist
 
 go 1.18
 
-require github.com/gocolly/colly v1.2.0
+require (
+	github.com/gocolly/colly v1.2.0
+	github.com/otiai10/gosseract/v2 v2.4.0
+)
 
 require (
 	github.com/PuerkitoBio/goquery v1.8.0 // indirect
