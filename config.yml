@@ -1,0 +1,3 @@
+collect_source_html:
+  www_yunjiema_top:
+    cron: "1 * * * *"

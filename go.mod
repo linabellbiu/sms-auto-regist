@@ -4,7 +4,8 @@ go 1.18
 
 require (
 	github.com/gocolly/colly v1.2.0
-	github.com/otiai10/gosseract/v2 v2.4.0
+	github.com/robfig/cron v1.2.0
+	gopkg.in/yaml.v2 v2.4.0
 )
 
 require (

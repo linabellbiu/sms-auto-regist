@@ -2,14 +2,25 @@ package www_yunjiema_top
 
 import (
 	"fmt"
-	"github.com/gocolly/colly"
-	"github.com/gocolly/colly/queue"
-	"github.com/wangxudong123/sms-auto-regist/register"
-	"regexp"
-	"strings"
+	"github.com/wangxudong123/sms-auto-regist/conf"
 )
 
-func On() {
+type collect struct {
+	config conf.DefaultCollectConfig
+}
+
+func NewCollect(config conf.DefaultCollectConfig) *collect {
+	return &collect{
+		config: config,
+	}
+}
+
+func (c *collect) Run() {
+	fmt.Println("----")
+}
+
+/*
+func (s *collect) Run() {
 	//创建内存队列，大小10000，goroutine数量 5
 	q, err := queue.New(5, &queue.InMemoryQueueStorage{MaxSize: 10000})
 	if err != nil {
@@ -104,4 +115,8 @@ func On() {
 	if err := q.Run(c); err != nil {
 		return
 	}
+}
+*/
+func (s *collect) GetConfig() conf.DefaultCollectConfig {
+	return s.config
 }
