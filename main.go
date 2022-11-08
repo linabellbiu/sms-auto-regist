@@ -26,7 +26,6 @@ func main() {
 	job(
 		www_yunjiema_top.NewCollect(GlobalConfig.CollectSourceHtml.WwwYunjiemaTop),
 	)
-
 }
 
 func job(jobs ...collect.CollerJob) {
@@ -44,7 +43,6 @@ func job(jobs ...collect.CollerJob) {
 	signal.Notify(s, syscall.SIGHUP, syscall.SIGQUIT, syscall.SIGTERM, syscall.SIGINT)
 	for {
 		s := <-s
-		log.Printf("server get a signal %s", s.String())
 		switch s {
 		case syscall.SIGQUIT, syscall.SIGTERM, syscall.SIGINT:
 			close(Signal)
