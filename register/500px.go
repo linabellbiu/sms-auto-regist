@@ -1,7 +1,9 @@
 package register
 
 import (
+	"encoding/json"
 	"fmt"
+	"github.com/go-resty/resty/v2"
 )
 
 /*
@@ -13,12 +15,22 @@ type Px500 struct {
 	Code string
 }
 
-var PX500Channel = make(chan *Px500, 100)
+var PX500Channel = make(chan *Px500, 1000)
 
 func (p *Px500) Register() {
-	data := <-PX500Channel
-	fmt.Println("手机号:", data.Tel)
-	fmt.Println("注册码:", data.Code)
+	for {
+		select {
+		case data := <-PX500Channel:
+			fmt.Println("手机号:", data.Tel)
+			fmt.Println("注册码:", data.Code)
+			exist, err := p.isExist(data.Tel)
+			if err != nil {
+				fmt.Errorf("检查手机号注册失败:%v", err)
+				return
+			}
+			fmt.Println("手机号注册"+data.Tel, exist)
+		}
+	}
 
 	// 调用验证码api
 
@@ -36,4 +48,29 @@ func (p *Px500) GetOrc() {
 	//defer resp.Body.Close()
 	//body, err := ioutil.ReadAll(resp.Body)
 	//
+}
+
+func (p *Px500) isExist(tel string) (bool, error) {
+	client := resty.New()
+	r := map[string]string{
+		"countryCode": "86",
+		"userName":    "13265520262",
+	}
+	req := client.R().SetFormData(r)
+	resp, err := req.Post("https://500px.com.cn/user/v2/userIsExist")
+	if err != nil {
+		return false, err
+	}
+	var exist = &IsExist{}
+	if err := json.Unmarshal(resp.Body(), exist); err != nil {
+		return false, err
+	}
+	return exist.IsExist, nil
+}
+
+type IsExist struct {
+	Message  string `json:"message"`
+	UserName string `json:"userName"`
+	IsExist  bool   `json:"isExist"`
+	Status   string `json:"status"`
 }

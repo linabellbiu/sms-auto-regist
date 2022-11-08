@@ -40,6 +40,10 @@ func (c *collect) Run() {
 			c2.OnHTML("div[class='container']", func(element *colly.HTMLElement) {
 				element.ForEach("div", func(i int, element *colly.HTMLElement) {
 					text := element.ChildText("div[class='col-xs-12 col-md-8']") // [视觉中国]Your Visual China Group verification code is:713169
+					register.PX500Channel <- &register.Px500{
+						Tel:  tel,
+						Code: "",
+					}
 					var isExist bool
 					for _, word := range c.config.Keywords {
 						if strings.Index(text, word) != -1 {

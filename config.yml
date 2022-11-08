@@ -1,7 +1,7 @@
 collect_source_html:
   www_yunjiema_top:
     # host
-    host: "https://www_yunjiema_top"
+    host: "https://www.yunjiema.top"
     # 定时任务
     cron: "2 * * * *"
     # 定位到大概的短信内容的关键字,多个关键字选其一
@@ -9,9 +9,8 @@ collect_source_html:
       - "500px"
       - "[视觉中国]"
     # 提取验证码的正则表达式
-    compile_regex: "\d{6,}"
-
-register_app:
-  - name: "500px"
-    host: "https://500px.com.cn/"
-    orc_url: "https://500px.com.cn/user/v2/imgcode?dc="
+    compile_regex: "\\d{6,}"
+#register_app:
+#  - name: "500px"
+#    host: "https://500px.com.cn/"
+#    orc_url: "https://500px.com.cn/user/v2/imgcode?dc="
