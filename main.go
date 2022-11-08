@@ -6,6 +6,7 @@ import (
 	"github.com/wangxudong123/sms-auto-regist/collect"
 	"github.com/wangxudong123/sms-auto-regist/collect/www_yunjiema_top"
 	"github.com/wangxudong123/sms-auto-regist/conf"
+	"github.com/wangxudong123/sms-auto-regist/register"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"log"
@@ -20,7 +21,7 @@ var Signal = make(chan int, 0)
 func main() {
 	parseConfig()
 
-	//register.Run(&register.Px500{})
+	register.Run(&register.Px500{})
 
 	// 定时任务
 	job(

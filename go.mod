@@ -3,6 +3,7 @@ module github.com/wangxudong123/sms-auto-regist
 go 1.18
 
 require (
+	github.com/go-resty/resty/v2 v2.7.0
 	github.com/gocolly/colly v1.2.0
 	github.com/robfig/cron v1.2.0
 	gopkg.in/yaml.v2 v2.4.0
