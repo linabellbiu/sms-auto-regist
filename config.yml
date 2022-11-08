@@ -1,3 +1,12 @@
 collect_source_html:
   www_yunjiema_top:
-    cron: "1 * * * *"
+    # host
+    host: "https://www_yunjiema_top"
+    # 定时任务
+    cron: "2 * * * *"
+    # 定位到大概的短信内容的关键字,多个关键字选其一
+    keywords:
+      - "500px"
+      - "[视觉中国]"
+    # 提取验证码的正则表达式
+    compile_regex: "\d{6,}"
