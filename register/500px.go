@@ -28,18 +28,22 @@ func (p *Px500) Register() {
 				fmt.Errorf("检查手机号注册失败:%v", err)
 				return
 			}
-			fmt.Println("手机号注册"+data.Tel, exist)
+			if exist {
+				fmt.Println("手机号已存在" + data.Tel)
+				break
+			}
+
+			{
+
+				//p.GetOrc()
+
+			}
 		}
 	}
-
-	// 调用验证码api
-
-	// 调用注册接口
-
 }
 
 // 获取验证码
-func (p *Px500) GetOrc() {
+func (p *Px500) GetOrc(z string, tel string) {
 	//resp, err := http.Get("http://httpbin.org/get")
 	//if err != nil {
 	//	fmt.Println(err)
