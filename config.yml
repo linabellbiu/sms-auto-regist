@@ -10,6 +10,11 @@ collect_source_html:
       - "[视觉中国]"
     # 提取验证码的正则表达式
     compile_regex: "\\d{6,}"
+orc:
+  source: "./orc"
+  image: "./orc/image"
+  cmd: "python3"
+
 #register_app:
 #  - name: "500px"
 #    host: "https://500px.com.cn/"

@@ -16,7 +16,6 @@ import (
 	"syscall"
 )
 
-var GlobalConfig = &conf.GlobalConfig{}
 var Signal = make(chan int, 0)
 
 func main() {
@@ -30,7 +29,7 @@ func main() {
 
 	// 定时任务
 	job(
-		www_yunjiema_top.NewCollect(GlobalConfig.CollectSourceHtml.WwwYunjiemaTop),
+		www_yunjiema_top.NewCollect(conf.Global.CollectSourceHtml.WwwYunjiemaTop),
 	)
 }
 
@@ -66,9 +65,9 @@ func parseConfig() {
 	if err != nil {
 		log.Fatalln(err)
 	}
-	err = yaml.Unmarshal(yamlFile, GlobalConfig)
+	err = yaml.Unmarshal(yamlFile, conf.Global)
 	if err != nil {
 		fmt.Println(err.Error())
 	}
-	fmt.Println(GlobalConfig)
+	fmt.Println(conf.Global)
 }

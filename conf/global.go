@@ -9,4 +9,7 @@ type DefaultCollectConfig struct {
 
 type GlobalConfig struct {
 	CollectSourceHtml CollectSourceHtml `yaml:"collect_source_html"`
+	Orc               Orc               `yaml:"orc"`
 }
+
+var Global = &GlobalConfig{}

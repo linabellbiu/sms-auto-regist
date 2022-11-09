@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/go-resty/resty/v2"
+	"github.com/wangxudong123/sms-auto-regist/conf"
 	"github.com/wangxudong123/sms-auto-regist/data"
 	"github.com/wangxudong123/sms-auto-regist/orc"
 	"image"
@@ -36,8 +37,24 @@ func (p *Px500) Register() {
 		case d := <-PX500Channel:
 			fmt.Println("手机号:", d.Tel)
 			fmt.Println("注册码:", d.Code)
+
 			client := &px500Client{}
-			exist, err := client.isExist(d.Tel)
+
+			var (
+				z, tel string
+			)
+
+			// 检查手机的区号
+			tel = strings.ReplaceAll(d.Tel, "+", "")
+			for _, code := range data.CountryCodeData {
+				if !strings.HasPrefix(tel, code.Code) {
+					continue
+				}
+				tel = tel[len(code.Code):]
+				z = code.Code
+			}
+
+			exist, err := client.isExist(z, d.Tel)
 			if err != nil {
 				fmt.Errorf("检查手机号注册失败:%v", err)
 				return
@@ -47,24 +64,22 @@ func (p *Px500) Register() {
 				break
 			}
 
+			// 获取验证码
 			{
-				for _, code := range data.CountryCodeData {
-					tel := strings.ReplaceAll(d.Tel, "+", "")
-					if !strings.HasPrefix(tel, code.Code) {
-						continue
-					}
-					tel = tel[len(code.Code):]
-
-					// 获取验证码
-					code, err := client.GetOrc(code.Code, tel)
+				var code string
+				// 错误的话尝试多次
+				for i := 0; i < 10; i++ {
+					code, err = client.GetOrc(z, tel)
 					if err != nil {
 						fmt.Errorf("获取验证码失败:%v", err)
+					}
+					if code == "" {
+						time.Sleep(1 * time.Second)
 						continue
 					}
-
-					// 请求注册
-					fmt.Println(code)
+					break
 				}
+				// 请求注册
 			}
 		}
 	}
@@ -110,7 +125,7 @@ func (p *px500Client) GetOrc(z string, tel string) (string, error) {
 		return "", err
 	}
 
-	path := "/Users/xudong/code/my/githup/sms-auto-regist/orc/image/" + z + tel + ".jpg"
+	path := conf.Global.Orc.Image + fmt.Sprintf("/%s%s.jpg", z, tel)
 	//path := "./orc/image/" + z + tel + ".jpg"
 	f, err := os.Create(path)
 	if err != nil {
@@ -127,11 +142,11 @@ func (p *px500Client) GetOrc(z string, tel string) (string, error) {
 	return orc.ImageCaptcha(path)
 }
 
-func (p *px500Client) isExist(tel string) (bool, error) {
+func (p *px500Client) isExist(z string, tel string) (bool, error) {
 	client := resty.New()
 	r := map[string]string{
-		"countryCode": "86",
-		"userName":    "13265520262",
+		"countryCode": z,
+		"userName":    tel,
 	}
 	resp, err := client.R().SetFormData(r).Post("https://500px.com.cn/user/v2/userIsExist")
 	if err != nil {
