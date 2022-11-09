@@ -7,7 +7,7 @@ import (
 )
 
 func TestImageCaptcha(t *testing.T) {
-	cmd := exec.Command("python3", "./image_captcha.py")
+	cmd := exec.Command("python3", "githup/sms-auto-regist/orc/image_captcha.py", "githup/sms-auto-regist/orc/image/imgcode.jpeg")
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		log.Fatalln(err)
