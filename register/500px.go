@@ -1,9 +1,18 @@
 package register
 
 import (
+	"bufio"
 	"encoding/json"
 	"fmt"
 	"github.com/go-resty/resty/v2"
+	"github.com/wangxudong123/sms-auto-regist/data"
+	"github.com/wangxudong123/sms-auto-regist/orc"
+	"image"
+	"image/jpeg"
+	"net/http"
+	"os"
+	"strings"
+	"time"
 )
 
 /*
@@ -20,38 +29,58 @@ var PX500Channel = make(chan *Px500, 1000)
 func (p *Px500) Register() {
 	for {
 		select {
-		case data := <-PX500Channel:
-			fmt.Println("手机号:", data.Tel)
-			fmt.Println("注册码:", data.Code)
-			exist, err := p.isExist(data.Tel)
+		case d := <-PX500Channel:
+			fmt.Println("手机号:", d.Tel)
+			fmt.Println("注册码:", d.Code)
+			exist, err := p.isExist(d.Tel)
 			if err != nil {
 				fmt.Errorf("检查手机号注册失败:%v", err)
 				return
 			}
 			if exist {
-				fmt.Println("手机号已存在" + data.Tel)
+				fmt.Println("手机号已存在" + d.Tel)
 				break
 			}
 
 			{
+				for _, code := range data.CountryCodeData {
+					tel := strings.ReplaceAll(d.Tel, "+", "")
+					if !strings.HasPrefix(tel, code.Code) {
+						continue
+					}
+					tel = tel[len(code.Code):]
 
-				//p.GetOrc()
-
+					// 获取验证码
+					p.GetOrc(code.Code, tel)
+				}
 			}
 		}
 	}
 }
 
 // 获取验证码
-func (p *Px500) GetOrc(z string, tel string) {
-	//resp, err := http.Get("http://httpbin.org/get")
-	//if err != nil {
-	//	fmt.Println(err)
-	//	return
-	//}
-	//defer resp.Body.Close()
-	//body, err := ioutil.ReadAll(resp.Body)
-	//
+func (p *Px500) GetOrc(z string, tel string) (string, error) {
+	resp, err := http.Get(fmt.Sprintf("https://500px.com.cn/user/v2/imgcode?dc=%d", time.Now().UnixMilli()))
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+	decode, _, err := image.Decode(resp.Body)
+	if err != nil {
+		return "", err
+	}
+	f, err := os.Create("E:\\CODE_WORK\\my\\sms-auto-regist\\register\\image.jpg")
+	if err != nil {
+		return "", err
+	}
+	defer f.Close()
+	b := bufio.NewWriter(f)
+	err = jpeg.Encode(b, decode, nil)
+	if err != nil {
+		return "", err
+	}
+	b.Flush()
+	return orc.ImageCaptcha(""), nil
 }
 
 func (p *Px500) isExist(tel string) (bool, error) {

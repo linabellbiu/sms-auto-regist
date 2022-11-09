@@ -6,6 +6,7 @@ import (
 	"github.com/wangxudong123/sms-auto-regist/collect"
 	"github.com/wangxudong123/sms-auto-regist/collect/www_yunjiema_top"
 	"github.com/wangxudong123/sms-auto-regist/conf"
+	"github.com/wangxudong123/sms-auto-regist/data"
 	"github.com/wangxudong123/sms-auto-regist/register"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
@@ -19,7 +20,11 @@ var GlobalConfig = &conf.GlobalConfig{}
 var Signal = make(chan int, 0)
 
 func main() {
+	// 解析配置
 	parseConfig()
+
+	//加载数据
+	data.ParseCountryCode()
 
 	register.Run(&register.Px500{})
 

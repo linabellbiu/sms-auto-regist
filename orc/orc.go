@@ -5,7 +5,7 @@ import (
 	"os/exec"
 )
 
-func ImageCaptcha() string {
+func ImageCaptcha(path string) string {
 	cmd := exec.Command("python3", "./image_captcha.py")
 	output, err := cmd.CombinedOutput()
 	if err != nil {
