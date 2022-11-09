@@ -24,6 +24,10 @@ type Px500 struct {
 	Code string
 }
 
+type px500Client struct {
+	cookies []*http.Cookie
+}
+
 var PX500Channel = make(chan *Px500, 1000)
 
 func (p *Px500) Register() {
@@ -32,7 +36,8 @@ func (p *Px500) Register() {
 		case d := <-PX500Channel:
 			fmt.Println("手机号:", d.Tel)
 			fmt.Println("注册码:", d.Code)
-			exist, err := p.isExist(d.Tel)
+			client := &px500Client{}
+			exist, err := client.isExist(d.Tel)
 			if err != nil {
 				fmt.Errorf("检查手机号注册失败:%v", err)
 				return
@@ -51,7 +56,14 @@ func (p *Px500) Register() {
 					tel = tel[len(code.Code):]
 
 					// 获取验证码
-					p.GetOrc(code.Code, tel)
+					code, err := client.GetOrc(code.Code, tel)
+					if err != nil {
+						fmt.Errorf("获取验证码失败:%v", err)
+						continue
+					}
+
+					// 请求注册
+					fmt.Println(code)
 				}
 			}
 		}
@@ -59,31 +71,39 @@ func (p *Px500) Register() {
 }
 
 // 获取验证码
-func (p *Px500) GetOrc(z string, tel string) (string, error) {
+func (p *px500Client) GetOrc(z string, tel string) (string, error) {
 	resp, err := http.Get(fmt.Sprintf("https://500px.com.cn/user/v2/imgcode?dc=%d", time.Now().UnixMilli()))
 	if err != nil {
 		return "", err
 	}
 	defer resp.Body.Close()
+
+	// cookie
+	p.cookies = resp.Cookies()
+
 	decode, _, err := image.Decode(resp.Body)
 	if err != nil {
 		return "", err
 	}
-	f, err := os.Create("E:\\CODE_WORK\\my\\sms-auto-regist\\register\\image.jpg")
+
+	path := "./orc/image/" + z + tel + ".jpg"
+	f, err := os.Create(path)
 	if err != nil {
 		return "", err
 	}
 	defer f.Close()
+
 	b := bufio.NewWriter(f)
 	err = jpeg.Encode(b, decode, nil)
 	if err != nil {
 		return "", err
 	}
 	b.Flush()
-	return orc.ImageCaptcha(""), nil
+
+	return orc.ImageCaptcha(path), nil
 }
 
-func (p *Px500) isExist(tel string) (bool, error) {
+func (p *px500Client) isExist(tel string) (bool, error) {
 	client := resty.New()
 	r := map[string]string{
 		"countryCode": "86",
