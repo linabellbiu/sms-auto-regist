@@ -1,15 +1,16 @@
 package orc
 
 import (
-	"log"
+	"fmt"
 	"os/exec"
 )
 
-func ImageCaptcha(path string) string {
-	cmd := exec.Command("python3", "./image_captcha.py", path)
+func ImageCaptcha(path string) (string, error) {
+	cmd := exec.Command("python3", "/Users/xudong/code/my/githup/sms-auto-regist/orc/image_captcha.py", path)
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		log.Fatalln(err)
+		fmt.Errorf("执行python失败:%v", err)
+		return "", err
 	}
-	return string(output)
+	return string(output), nil
 }

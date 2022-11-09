@@ -8,6 +8,7 @@ import (
 	"image/jpeg"
 	"net/http"
 	"os"
+	"strings"
 	"testing"
 	"time"
 )
@@ -54,10 +55,6 @@ func TestPx500_Get(t *testing.T) {
 			Value:    "a6426d6b-a36c-46da-8e3b-097f0db7913b",
 			HttpOnly: true,
 		},
-		//&http.Cookie{
-		//	Name:     "acw_tc",
-		//	Value:    "276077d816679622476083486e9223216e53b1c64c4a5305ab9aeee2a634b0",
-		//	HttpOnly: true},
 	)
 
 	resp, err := req.SetHeaders(map[string]string{
@@ -86,4 +83,12 @@ func TestPx500_Exist(t *testing.T) {
 		t.Fatal(err)
 	}
 	fmt.Println(resp.String())
+}
+
+func TestPx500_SendCode(t *testing.T) {
+	client := &px500Client{}
+	code, err := client.GetOrc("86", "19520745257")
+	fmt.Println(err)
+	fmt.Println(fmt.Sprintf("---%s---", strings.TrimSpace(code)))
+	client.sendPhoneCode(strings.ToLower(strings.TrimSpace(code)), "86", "19520745257")
 }
