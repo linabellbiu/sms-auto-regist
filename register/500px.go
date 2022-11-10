@@ -31,46 +31,55 @@ type px500Client struct {
 	cookies []*http.Cookie
 }
 
-var PX500Channel = make(chan *Px500, 1000)
+var (
+	PX500Channel = make(chan *Px500, 1000)
+	PX500V       = make(chan string, 1000)
+	PX500Client  = make(map[string]*px500Client)
+)
 
 func (p *Px500) Register() {
 	for {
 		select {
-		case d := <-PX500Channel:
-			fmt.Println("手机号:", d.Tel)
-			fmt.Println("注册码:", d.Code)
+		case phoneNum := <-PX500V:
+			fmt.Println("手机号:", phoneNum)
 
-			client := &px500Client{}
-
+			client, ok := PX500Client[phoneNum]
+			if !ok {
+				client = &px500Client{}
+				PX500Client[phoneNum] = client
+			}
 			var (
 				z, tel string
 			)
 
 			// 检查手机的区号
-			tel = strings.ReplaceAll(d.Tel, "+", "")
+			tel = strings.ReplaceAll(phoneNum, "+", "")
 			for _, code := range data.CountryCodeData {
 				if !strings.HasPrefix(tel, code.Code) {
 					continue
 				}
 				tel = tel[len(code.Code):]
 				z = code.Code
+				break
 			}
-
-			exist, err := client.isExist(z, d.Tel)
+			fmt.Println("检查账号是否存在")
+			exist, err := client.isExist(z, phoneNum)
 			if err != nil {
 				fmt.Errorf("检查手机号注册失败:%v", err)
-				return
+				break
 			}
 			if exist {
-				fmt.Println("手机号已存在" + d.Tel)
+				fmt.Println("手机号已存在" + phoneNum)
 				break
 			}
 
 			// 获取验证码
 			{
+				fmt.Println("获取图片验证码")
 				var code string
 				// 错误的话尝试多次
-				for i := 0; i < 10; i++ {
+				for i := 0; i < 5; i++ {
+					fmt.Println("尝试重新获取图片验证码")
 					code, err = client.GetOrc(z, tel)
 					if err != nil {
 						fmt.Errorf("获取验证码失败:%v", err)
@@ -81,12 +90,38 @@ func (p *Px500) Register() {
 					}
 
 					// 发送验证码
+					fmt.Println("发送短信验证码")
 					if err := client.sendPhoneCode(code, z, tel); err != nil {
+						fmt.Println("!!!!发送短信验证码失败!!!!"+z+tel, err)
 						continue
 					}
 					break
 				}
 			}
+		case d := <-PX500Channel:
+			// 注册
+			fmt.Println("开始注册" + d.Tel)
+			client, ok := PX500Client[d.Tel]
+			if !ok {
+				client = &px500Client{}
+				PX500Client[d.Tel] = client
+			}
+
+			// 检查手机的区号
+			tel := strings.ReplaceAll(d.Tel, "+", "")
+			for _, code := range data.CountryCodeData {
+				if !strings.HasPrefix(tel, code.Code) {
+					continue
+				}
+				tel = tel[len(code.Code):]
+				err := client.reg(d.Code, code.Code, tel)
+				if err != nil {
+					return
+				}
+				fmt.Println("=====注册完毕=====")
+				break
+			}
+
 		}
 	}
 }
@@ -94,20 +129,14 @@ func (p *Px500) Register() {
 func (p *px500Client) reg(code, z, tel string) error {
 	client := resty.New()
 	r := map[string]string{
-		"countryCode": "86",
-		"userName":    "13265520202",
-		"displayName": "sssss",
+		"countryCode": z,
+		"userName":    tel,
+		"displayName": "root",
 		"password":    "aWha234234",
-		"code":        "ssss",
+		"code":        code,
 	}
 	req := client.R().SetFormData(r)
-
-	for _, v := range p.cookies {
-		fmt.Println(v.Name)
-		fmt.Println(v.Value)
-	}
-	req.SetCookies(p.cookies)
-	resp, err := req.Post("https://500px.com.cn/user/v2/toRegisterMe")
+	resp, err := req.SetCookies(p.cookies).Post("https://500px.com.cn/user/v2/toRegisterMe")
 	if err != nil {
 		return err
 	}
@@ -122,13 +151,15 @@ func (p *px500Client) GetOrc(z string, tel string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-
+	// 暂停两秒不知道500px那边为啥要等2s
+	time.Sleep(2 * time.Second)
 	decode, _, err := image.Decode(bytes.NewReader(resp.Body()))
 	if err != nil {
 		return "", err
 	}
 
 	path := conf.Global.Orc.Image + fmt.Sprintf("/%s%s.jpg", z, tel)
+	fmt.Println(path)
 	//path := "./orc/image/" + z + tel + ".jpg"
 	f, err := os.Create(path)
 	if err != nil {
@@ -188,6 +219,7 @@ func (p *px500Client) sendPhoneCode(code, z, tel string) error {
 		fmt.Errorf("发送短信验证码失败:%v", err)
 		return err
 	}
+	fmt.Println(resp.String())
 	var res = &SendCodeResp{}
 	err = json.Unmarshal(resp.Body(), res)
 	if err != nil {
@@ -198,5 +230,6 @@ func (p *px500Client) sendPhoneCode(code, z, tel string) error {
 		fmt.Errorf("发送短信验证码失败:%s", resp.String())
 		return errors.New("发送失败")
 	}
+	fmt.Println("----发送短信验证码成功-----" + z + tel)
 	return nil
 }

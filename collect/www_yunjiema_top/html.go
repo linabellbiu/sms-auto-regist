@@ -35,15 +35,16 @@ func (c *collect) Run() {
 	co.OnHTML("div[class='number-boxes']", func(e *colly.HTMLElement) {
 		e.ForEach("div[class='number-boxes-item d-flex flex-column ']", func(i int, element *colly.HTMLElement) {
 			tel := element.ChildText("h4")
+
+			register.PX500V <- tel
+
+			//--------------------------------
 			// 尝试对这个手机号的接受短信爬取内容
+			//--------------------------------
 			c2 := co.Clone()
 			c2.OnHTML("div[class='container']", func(element *colly.HTMLElement) {
 				element.ForEach("div", func(i int, element *colly.HTMLElement) {
 					text := element.ChildText("div[class='col-xs-12 col-md-8']") // [视觉中国]Your Visual China Group verification code is:713169
-					register.PX500Channel <- &register.Px500{
-						Tel:  tel,
-						Code: "",
-					}
 					var isExist bool
 					for _, word := range c.config.Keywords {
 						if strings.Index(text, word) != -1 {
@@ -65,9 +66,9 @@ func (c *collect) Run() {
 							Tel:  tel,
 							Code: matchArr[len(matchArr)-1],
 						}
-
 						fmt.Println("=======================")
 						fmt.Println("====获取到了============")
+						fmt.Println("手机号:" + tel + "验证码" + matchArr[len(matchArr)-1])
 						fmt.Println("=======================")
 					}
 				})

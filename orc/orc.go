@@ -14,5 +14,6 @@ func ImageCaptcha(path string) (string, error) {
 		fmt.Errorf("执行python失败:%v", err)
 		return "", err
 	}
+	fmt.Println("执行命令", strings.TrimSpace(string(output)))
 	return strings.TrimSpace(string(output)), nil
 }
