@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/wangxudong123/sms-auto-regist/conf"
 	"os/exec"
+	"strings"
 )
 
 func ImageCaptcha(path string) (string, error) {
@@ -13,5 +14,5 @@ func ImageCaptcha(path string) (string, error) {
 		fmt.Errorf("执行python失败:%v", err)
 		return "", err
 	}
-	return string(output), nil
+	return strings.TrimSpace(string(output)), nil
 }

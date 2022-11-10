@@ -2,12 +2,14 @@ package register
 
 import (
 	"bufio"
+	"bytes"
 	"fmt"
 	"github.com/go-resty/resty/v2"
 	"image"
 	"image/jpeg"
 	"net/http"
 	"os"
+	"os/exec"
 	"strings"
 	"testing"
 	"time"
@@ -87,8 +89,59 @@ func TestPx500_Exist(t *testing.T) {
 
 func TestPx500_SendCode(t *testing.T) {
 	client := &px500Client{}
-	code, err := client.GetOrc("86", "19520745257")
+	code, err := client.GetOrc("86", "xx")
 	fmt.Println(err)
 	fmt.Println(fmt.Sprintf("---%s---", strings.TrimSpace(code)))
-	client.sendPhoneCode(strings.ToLower(strings.TrimSpace(code)), "86", "19520745257")
+	client.sendPhoneCode(strings.ToLower(strings.TrimSpace(code)), "86", "xx")
+}
+
+func TestPx500_Register(t *testing.T) {
+	client := resty.New()
+	r := map[string]string{
+		"countryCode": "86",
+		"userName":    "xxx",
+	}
+	req := client.R().SetFormData(r)
+	resp, err := req.Post("https://500px.com.cn/user/v2/userIsExist")
+	if err != nil {
+		t.Fatal(err)
+	}
+	cookie := resp.Cookies()
+
+	app := &px500Client{
+		cookie,
+	}
+
+	resp, err = client.R().SetCookies(cookie).Get(fmt.Sprintf("https://500px.com.cn/user/v2/imgcode?dc=%d", time.Now().UnixMilli()))
+	if err != nil {
+		return
+	}
+	time.Sleep(2 * time.Second)
+	decode, _, err := image.Decode(bytes.NewReader(resp.Body()))
+	if err != nil {
+		return
+	}
+
+	path := fmt.Sprintf("E:\\CODE_WORK\\my\\sms-auto-regist\\data\\image\\86.jpg")
+	f, err := os.Create(path)
+	if err != nil {
+		return
+	}
+	defer f.Close()
+
+	b := bufio.NewWriter(f)
+	err = jpeg.Encode(b, decode, nil)
+	if err != nil {
+		return
+	}
+	b.Flush()
+
+	cmd := exec.Command("python", "E:\\CODE_WORK\\my\\sms-auto-regist\\orc\\image_captcha.py", path)
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		fmt.Errorf("执行python失败:%v", err)
+		return
+	}
+	fmt.Println(strings.TrimSpace(string(output)))
+	app.sendPhoneCode(strings.ToLower(strings.TrimSpace(string(output))), "86", "xxx")
 }

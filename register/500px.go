@@ -80,6 +80,10 @@ func (p *Px500) Register() {
 					break
 				}
 				// 请求注册
+				if err := client.reg(code, z, tel); err != nil {
+					return
+				}
+
 			}
 		}
 	}
@@ -118,7 +122,7 @@ func (p *px500Client) GetOrc(z string, tel string) (string, error) {
 	defer resp.Body.Close()
 
 	// cookie
-	p.cookies = resp.Cookies()
+	//p.cookies = resp.Cookies()
 	fmt.Println("获取验证码的cookie", p.cookies)
 	decode, _, err := image.Decode(resp.Body)
 	if err != nil {
