@@ -2,7 +2,9 @@ package register
 
 import (
 	"bufio"
+	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/go-resty/resty/v2"
 	"github.com/wangxudong123/sms-auto-regist/conf"
@@ -77,13 +79,13 @@ func (p *Px500) Register() {
 						time.Sleep(1 * time.Second)
 						continue
 					}
+
+					// 发送验证码
+					if err := client.sendPhoneCode(code, z, tel); err != nil {
+						continue
+					}
 					break
 				}
-				// 请求注册
-				if err := client.reg(code, z, tel); err != nil {
-					return
-				}
-
 			}
 		}
 	}
@@ -115,16 +117,13 @@ func (p *px500Client) reg(code, z, tel string) error {
 
 // 获取验证码
 func (p *px500Client) GetOrc(z string, tel string) (string, error) {
-	resp, err := http.Get(fmt.Sprintf("https://500px.com.cn/user/v2/imgcode?dc=%d", time.Now().UnixMilli()))
+	client := resty.New()
+	resp, err := client.R().SetCookies(p.cookies).Get(fmt.Sprintf("https://500px.com.cn/user/v2/imgcode?dc=%d", time.Now().UnixMilli()))
 	if err != nil {
 		return "", err
 	}
-	defer resp.Body.Close()
 
-	// cookie
-	//p.cookies = resp.Cookies()
-	fmt.Println("获取验证码的cookie", p.cookies)
-	decode, _, err := image.Decode(resp.Body)
+	decode, _, err := image.Decode(bytes.NewReader(resp.Body()))
 	if err != nil {
 		return "", err
 	}
@@ -156,6 +155,7 @@ func (p *px500Client) isExist(z string, tel string) (bool, error) {
 	if err != nil {
 		return false, err
 	}
+	p.cookies = resp.Cookies()
 	var exist = &IsExist{}
 	if err := json.Unmarshal(resp.Body(), exist); err != nil {
 		return false, err
@@ -170,28 +170,33 @@ type IsExist struct {
 	Status   string `json:"status"`
 }
 
-func (p *px500Client) sendPhoneCode(code, z, tel string) {
+type SendCodeResp struct {
+	Flag    bool   `json:"flag"`
+	Phone   string `json:"phone"`
+	Message string `json:"message"`
+	Status  string `json:"status"`
+}
+
+func (p *px500Client) sendPhoneCode(code, z, tel string) error {
 	r := map[string]string{
 		"imgCode":     code,
 		"countryCode": z,
 		"phone":       tel,
 	}
-	var cookie []*http.Cookie
-	for _, v := range p.cookies {
-		if v.Name == "SESSION" {
-			cookie = append(cookie, &http.Cookie{
-				Name:  v.Name,
-				Value: v.Value,
-			})
-			break
-		}
-	}
-	fmt.Println("发送验证码的cookie", cookie)
-	resp, err := resty.New().R().SetFormData(r).SetCookies(cookie).Post("https://500px.com.cn/user/v2/sendPhoneCode")
+	resp, err := resty.New().R().SetFormData(r).SetCookies(p.cookies).Post("https://500px.com.cn/user/v2/sendPhoneCode")
 	if err != nil {
 		fmt.Errorf("发送短信验证码失败:%v", err)
-		return
+		return err
+	}
+	var res = &SendCodeResp{}
+	err = json.Unmarshal(resp.Body(), res)
+	if err != nil {
+		return err
 	}
 
-	fmt.Println(resp)
+	if res.Status != "200" {
+		fmt.Errorf("发送短信验证码失败:%s", resp.String())
+		return errors.New("发送失败")
+	}
+	return nil
 }
