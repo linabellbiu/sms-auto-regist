@@ -1,17 +1,17 @@
-package register
+package app
 
 import "time"
 
-type AppRegister interface {
+type Register interface {
 	Register()
 }
 
-func Run(apps ...AppRegister) {
+func Run(apps ...Register) {
 	for _, app := range apps {
-		go func() {
+		go func(app Register) {
 			tick := time.NewTicker(3 * time.Second)
 			app.Register()
 			<-tick.C
-		}()
+		}(app)
 	}
 }

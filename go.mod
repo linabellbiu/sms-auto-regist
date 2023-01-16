@@ -1,4 +1,4 @@
-module github.com/wangxudong123/sms-auto-regist
+module github.com/linabellbiu/sms-auto-regist
 
 go 1.18
 

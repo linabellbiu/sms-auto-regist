@@ -1,4 +1,4 @@
-package register
+package app
 
 import (
 	"bufio"
@@ -7,9 +7,9 @@ import (
 	"errors"
 	"fmt"
 	"github.com/go-resty/resty/v2"
-	"github.com/wangxudong123/sms-auto-regist/conf"
-	"github.com/wangxudong123/sms-auto-regist/data"
-	"github.com/wangxudong123/sms-auto-regist/orc"
+	"github.com/linabellbiu/sms-auto-regist/conf"
+	"github.com/linabellbiu/sms-auto-regist/data"
+	"github.com/linabellbiu/sms-auto-regist/orc"
 	"image"
 	"image/jpeg"
 	"net/http"

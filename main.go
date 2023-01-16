@@ -2,14 +2,13 @@ package main
 
 import (
 	"fmt"
+	"github.com/linabellbiu/sms-auto-regist/app"
+	"github.com/linabellbiu/sms-auto-regist/collect"
+	"github.com/linabellbiu/sms-auto-regist/collect/www_yunjiema_top"
+	"github.com/linabellbiu/sms-auto-regist/conf"
+	"github.com/linabellbiu/sms-auto-regist/data"
 	"github.com/robfig/cron"
-	"github.com/wangxudong123/sms-auto-regist/collect"
-	"github.com/wangxudong123/sms-auto-regist/collect/www_yunjiema_top"
-	"github.com/wangxudong123/sms-auto-regist/conf"
-	"github.com/wangxudong123/sms-auto-regist/data"
-	"github.com/wangxudong123/sms-auto-regist/register"
 	"gopkg.in/yaml.v2"
-	"io/ioutil"
 	"log"
 	"os"
 	"os/signal"
@@ -25,9 +24,10 @@ func main() {
 	//加载数据
 	data.ParseCountryCode()
 
-	register.Run(&register.Px500{})
+	// 需要自动注册的api
+	app.Run(&app.Example{})
 
-	// 定时任务
+	// 启动爬虫定时任务
 	job(
 		www_yunjiema_top.NewCollect(conf.Global.CollectSourceHtml.WwwYunjiemaTop),
 	)
@@ -61,7 +61,7 @@ func job(jobs ...collect.CollerJob) {
 }
 
 func parseConfig() {
-	yamlFile, err := ioutil.ReadFile("config.yml")
+	yamlFile, err := os.ReadFile("config.yml")
 	if err != nil {
 		log.Fatalln(err)
 	}
