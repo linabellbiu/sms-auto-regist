@@ -1,14 +1,11 @@
 package main
 
 import (
-	"fmt"
 	"github.com/linabellbiu/sms-auto-regist/app"
 	"github.com/linabellbiu/sms-auto-regist/collect"
-	"github.com/linabellbiu/sms-auto-regist/collect/www_yunjiema_top"
+	"github.com/linabellbiu/sms-auto-regist/collect/origin/www_yunjiema_top"
 	"github.com/linabellbiu/sms-auto-regist/conf"
-	"github.com/linabellbiu/sms-auto-regist/data"
 	"github.com/robfig/cron"
-	"gopkg.in/yaml.v2"
 	"log"
 	"os"
 	"os/signal"
@@ -18,13 +15,9 @@ import (
 var Signal = make(chan int, 0)
 
 func main() {
-	// 解析配置
-	parseConfig()
+	collect.NewCollect()
 
-	//加载数据
-	data.ParseCountryCode()
-
-	// 需要自动注册的api
+	// 应用
 	app.Run(&app.Example{})
 
 	// 启动爬虫定时任务
@@ -58,16 +51,4 @@ func job(jobs ...collect.CollerJob) {
 			return
 		}
 	}
-}
-
-func parseConfig() {
-	yamlFile, err := os.ReadFile("config.yml")
-	if err != nil {
-		log.Fatalln(err)
-	}
-	err = yaml.Unmarshal(yamlFile, conf.Global)
-	if err != nil {
-		fmt.Println(err.Error())
-	}
-	fmt.Println(conf.Global)
 }

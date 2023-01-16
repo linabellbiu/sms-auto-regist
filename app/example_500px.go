@@ -7,9 +7,9 @@ import (
 	"errors"
 	"fmt"
 	"github.com/go-resty/resty/v2"
+	"github.com/linabellbiu/sms-auto-regist/collect/orc"
+	"github.com/linabellbiu/sms-auto-regist/collect/source"
 	"github.com/linabellbiu/sms-auto-regist/conf"
-	"github.com/linabellbiu/sms-auto-regist/data"
-	"github.com/linabellbiu/sms-auto-regist/orc"
 	"image"
 	"image/jpeg"
 	"net/http"
@@ -48,7 +48,7 @@ func (p *Px500) Register() {
 
 			// 检查手机的区号
 			tel = strings.ReplaceAll(d.Tel, "+", "")
-			for _, code := range data.CountryCodeData {
+			for _, code := range source.CountryCodeData {
 				if !strings.HasPrefix(tel, code.Code) {
 					continue
 				}

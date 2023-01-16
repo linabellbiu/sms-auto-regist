@@ -2,6 +2,7 @@ package collect
 
 import (
 	"errors"
+	"github.com/linabellbiu/sms-auto-regist/collect/source"
 	"github.com/linabellbiu/sms-auto-regist/conf"
 	"github.com/robfig/cron"
 )
@@ -21,6 +22,15 @@ var (
 type CollerJob interface {
 	cron.Job
 	GetConfig() conf.DefaultCollectConfig
+}
+
+func NewCollect() {
+	// 解析配置
+	conf.ParseConfig()
+
+	//加载数据
+	source.ParseCountryCode()
+
 }
 
 func WriteFindTel(a string) error {
