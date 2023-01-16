@@ -16,7 +16,7 @@ func ParseConfig() {
 	if err != nil {
 		fmt.Println(err.Error())
 	}
-	fmt.Println(Global)
+	log.Println(Global)
 }
 
 // ParseConfigPath 指定配置文件解析
@@ -29,5 +29,5 @@ func ParseConfigPath(path string) {
 	if err != nil {
 		fmt.Println(err.Error())
 	}
-	fmt.Println(Global)
+	log.Println(Global)
 }

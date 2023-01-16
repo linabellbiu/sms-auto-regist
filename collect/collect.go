@@ -12,26 +12,46 @@ type FindSMSTel struct {
 	Code string
 }
 
-var (
-	// 发送未接收到短信的手机号
-	SendFindTel = make(chan string, 10000)
-	// 发送接收到短信的手机号
-	SendFindSMSTel = make(chan *FindSMSTel, 1000)
-)
-
-type CollerJob interface {
+type Job interface {
 	cron.Job
 	GetConfig() conf.DefaultCollectConfig
 }
 
-func NewCollect() {
+// 设置项
+type (
+	option struct {
+		configPath string
+	}
+
+	Setting func(*option)
+)
+
+// SetConfigPath 设置配置文件路径
+func SetConfigPath(path string) Setting {
+	return func(o *option) {
+		o.configPath = path
+	}
+}
+
+func NewCollect(s ...Setting) {
+	o := &option{}
+	for _, f := range s {
+		f(o)
+	}
+
 	// 解析配置
-	conf.ParseConfig()
+	conf.ParseConfigPath(o.configPath)
 
 	//加载数据
 	source.ParseCountryCode()
-
 }
+
+var (
+	// SendFindTel 发送未接收到短信的手机号
+	SendFindTel = make(chan string, 10000)
+	// SendFindSMSTel 发送接收到短信的手机号
+	SendFindSMSTel = make(chan *FindSMSTel, 1000)
+)
 
 func WriteFindTel(a string) error {
 	select {

@@ -1,10 +1,10 @@
 package main
 
 import (
-	"github.com/linabellbiu/sms-auto-regist/app"
 	"github.com/linabellbiu/sms-auto-regist/collect"
 	"github.com/linabellbiu/sms-auto-regist/collect/origin/www_yunjiema_top"
 	"github.com/linabellbiu/sms-auto-regist/conf"
+	app2 "github.com/linabellbiu/sms-auto-regist/example/app"
 	"github.com/robfig/cron"
 	"log"
 	"os"
@@ -15,10 +15,12 @@ import (
 var Signal = make(chan int, 0)
 
 func main() {
-	collect.NewCollect()
+	collect.NewCollect(
+		collect.SetConfigPath("../config.yml"),
+	)
 
-	// 应用
-	app.Run(&app.Example{})
+	// 启动应用
+	app2.Run(&app2.Example{})
 
 	// 启动爬虫定时任务
 	job(
@@ -26,7 +28,7 @@ func main() {
 	)
 }
 
-func job(jobs ...collect.CollerJob) {
+func job(jobs ...collect.Job) {
 	c := cron.New()
 	for _, j := range jobs {
 		if err := c.AddJob(j.GetConfig().Cron, j); err != nil {
