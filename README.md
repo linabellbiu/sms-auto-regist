@@ -6,7 +6,7 @@
 
 ### How to use
 
-#### config
+#### config.yml
 ```yml
 collect_source_html:
   www_yunjiema_top:
