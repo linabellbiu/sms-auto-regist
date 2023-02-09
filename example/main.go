@@ -4,7 +4,7 @@ import (
 	"github.com/linabellbiu/sms-auto-regist/collect"
 	"github.com/linabellbiu/sms-auto-regist/collect/origin/www_yunjiema_top"
 	"github.com/linabellbiu/sms-auto-regist/conf"
-	app2 "github.com/linabellbiu/sms-auto-regist/example/app"
+	"github.com/linabellbiu/sms-auto-regist/example/app"
 	"github.com/robfig/cron"
 	"log"
 	"os"
@@ -20,7 +20,7 @@ func main() {
 	)
 
 	// 启动应用
-	app2.Run(&app2.Example{})
+	app.Run(&app.Example{})
 
 	// 启动爬虫定时任务
 	job(
