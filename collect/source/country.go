@@ -1,4 +1,4 @@
-package data
+package source
 
 import (
 	"encoding/json"

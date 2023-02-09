@@ -2,7 +2,7 @@ package orc
 
 import (
 	"fmt"
-	"github.com/wangxudong123/sms-auto-regist/conf"
+	"github.com/linabellbiu/sms-auto-regist/conf"
 	"os/exec"
 	"strings"
 )

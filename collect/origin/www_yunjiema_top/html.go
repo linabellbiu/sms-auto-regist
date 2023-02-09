@@ -4,23 +4,24 @@ import (
 	"fmt"
 	"github.com/gocolly/colly"
 	"github.com/gocolly/colly/queue"
-	"github.com/wangxudong123/sms-auto-regist/conf"
-	"github.com/wangxudong123/sms-auto-regist/register"
+	"github.com/linabellbiu/sms-auto-regist/collect"
+	"github.com/linabellbiu/sms-auto-regist/conf"
+	"log"
 	"regexp"
 	"strings"
 )
 
-type collect struct {
+type Collect struct {
 	config conf.DefaultCollectConfig
 }
 
-func NewCollect(config conf.DefaultCollectConfig) *collect {
-	return &collect{
+func NewCollect(config conf.DefaultCollectConfig) *Collect {
+	return &Collect{
 		config: config,
 	}
 }
 
-func (c *collect) Run() {
+func (c *Collect) Run() {
 	//创建内存队列，大小10000，goroutine数量 5
 	q, err := queue.New(5, &queue.InMemoryQueueStorage{MaxSize: 10000})
 	if err != nil {
@@ -34,25 +35,24 @@ func (c *collect) Run() {
 
 	co.OnHTML("div[class='number-boxes']", func(e *colly.HTMLElement) {
 		e.ForEach("div[class='number-boxes-item d-flex flex-column ']", func(i int, element *colly.HTMLElement) {
+			// 爬到的手机号,这个时候还没发送短信,先通知客户端发送短信
 			tel := element.ChildText("h4")
+			if err := collect.WriteFindTel(tel); err != nil {
+				log.Println(err)
+			}
 
-			register.PX500V <- tel
-
-			//--------------------------------
 			// 尝试对这个手机号的接受短信爬取内容
-			//--------------------------------
 			c2 := co.Clone()
 			c2.OnHTML("div[class='container']", func(element *colly.HTMLElement) {
 				element.ForEach("div", func(i int, element *colly.HTMLElement) {
-					text := element.ChildText("div[class='col-xs-12 col-md-8']") // [视觉中国]Your Visual China Group verification code is:713169
 					var isExist bool
+					text := element.ChildText("div[class='col-xs-12 col-md-8']") // [视觉中国]Your Visual China Group verification code is:713169
 					for _, word := range c.config.Keywords {
 						if strings.Index(text, word) != -1 {
 							isExist = true
 							break
 						}
 					}
-
 					if isExist {
 						// 提取验证码
 						compileRegex := regexp.MustCompile(c.config.CompileRegex)
@@ -62,14 +62,12 @@ func (c *collect) Run() {
 							return
 						}
 
-						register.PX500Channel <- &register.Px500{
+						if err := collect.WriteFindSMSTel(&collect.FindSMSTel{
 							Tel:  tel,
 							Code: matchArr[len(matchArr)-1],
+						}); err != nil {
+							log.Println(err)
 						}
-						fmt.Println("=======================")
-						fmt.Println("====获取到了============")
-						fmt.Println("手机号:" + tel + "验证码" + matchArr[len(matchArr)-1])
-						fmt.Println("=======================")
 					}
 				})
 			})
@@ -124,6 +122,6 @@ func (c *collect) Run() {
 	}
 }
 
-func (c *collect) GetConfig() conf.DefaultCollectConfig {
+func (c *Collect) GetConfig() conf.DefaultCollectConfig {
 	return c.config
 }

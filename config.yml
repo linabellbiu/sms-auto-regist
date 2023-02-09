@@ -14,8 +14,3 @@ orc:
   source: "./orc"
   image: "./orc/image"
   cmd: "python3"
-
-#register_app:
-#  - name: "500px"
-#    host: "https://500px.com.cn/"
-#    orc_url: "https://500px.com.cn/user/v2/imgcode?dc="
