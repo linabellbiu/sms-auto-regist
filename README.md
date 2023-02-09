@@ -6,6 +6,24 @@
 
 ### How to use
 
+#### config
+```yml
+collect_source_html:
+  www_yunjiema_top:
+    # host
+    host: "https://www.yunjiema.top"
+    # timed task
+    cron: "2 * * * *"
+    # Locate the keywords of the general text message content, choose one of multiple keywords
+    keywords:
+      - "500px"
+      - "[视觉中国]"
+    # Regular expression to extract captcha
+    compile_regex: "\\d{6,}"	
+```	
+	
+	
+	
 #### reference 
 
 run
